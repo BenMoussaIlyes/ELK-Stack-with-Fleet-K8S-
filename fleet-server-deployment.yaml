@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fleet-server
+  namespace: elk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fleet-server
+  template:
+    metadata:
+      labels:
+        app: fleet-server
+    spec:
+      containers:
+        - name: fleet-server
+          image: docker.elastic.co/beats/elastic-agent:8.14.3
+          env:
+            - name: FLEET_SERVER_ENABLE
+              value: "true"
+            - name: FLEET_SERVER_SERVICE_TOKEN
+              value: "AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL3Rva2VuLTE3MjQ1OTY1OTUxNzk6bHdLakdLaWVTZ2lra0M3bFFXTWdKZw" 
+            - name: FLEET_SERVER_ELASTICSEARCH_HOST
+              value: "http://elasticsearch-service:9200"
+            - name: FLEET_SERVER_POLICY_ID
+              value: "fleet-server-policy" # Create this policy in Kibana Fleet settings
+            - name: KIBANA_HOST
+              value: "http://kibana-service:5601"
+            - name: KIBANA_SERVICE_TOKEN
+              value: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjpQeDNKblJEZFNlS3JkZ3VSVjE1NjVn"
+            - name: FLEET_SERVER_PORT
+              value: "8220"  # Use only the port number here
+          ports:
+            - containerPort: 8220
+              name: fleet
