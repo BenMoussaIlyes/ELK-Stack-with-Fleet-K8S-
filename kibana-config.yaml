@@ -9,14 +9,32 @@ data:
     server.host: "0.0.0.0"
     elasticsearch.hosts: ["http://elasticsearch-service.elk.svc:9200"]
     monitoring.ui.container.elasticsearch.enabled: true
-    elasticsearch.serviceAccountToken: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjoxTElSLWNyZFJFTzRFMEhpa2lqUjZ3"
+    elasticsearch.serviceAccountToken: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjpfajBWNXFja1FJNm1EeFZVU2paRk1B"
     xpack.monitoring.enabled: true
     xpack.security.encryptionKey: "lsDKt1BJ8LJhdscNlGHkzHVlR7JzkZ7F"
     xpack.reporting.encryptionKey: "VxDs6xHYT38jv6Zp9kHrGf9JwN8KL9SK"
     xpack.encryptedSavedObjects.encryptionKey: "YkHt2KvZ5P3lGnL8lFgH8sKl4RnL9N7S"
-    xpack.fleet.agents.enabled: true
     xpack.fleet.agents.fleet_server.hosts: ["https://fleet-server.elk.svc:8220"]
     xpack.fleet.agents.elasticsearch.hosts: ["http://elasticsearch-service.elk.svc:9200"]
+    xpack.fleet.agents.enabled: true
+    
+    xpack.fleet.packages:
+      - name: fleet_server
+        version: latest
+    xpack.fleet.agentPolicies:
+      - name: Fleet Server policy
+        id: fleet-server-policy
+        namespace: default
+        package_policies:
+          - name: fleet_server-1
+            package:
+              name: fleet_server
+
+
+
+   # xpack.fleet.agents.enabled: true
+    # xpack.fleet.agents.fleet_server.hosts: ["https://fleet-server.elk.svc:8220"]
+    # xpack.fleet.agents.elasticsearch.hosts: ["http://elasticsearch-service.elk.svc:9200"]
     # xpack.fleet.packages:
     #   - name: system
     #     version: latest
@@ -46,6 +64,13 @@ data:
     #                   period: 20s
     #           system-winlog:
     #             enabled: false
+
+
+
+
+
+
+
 
 
 
