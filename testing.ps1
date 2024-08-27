@@ -1,47 +1,71 @@
-# Define variables
-$KIBANA_HOST="http://localhost:5601"
-$ELASTICSEARCH_HOST="http://elasticsearch-service.elk.svc:9200"
-$FLEET_SERVER_URL="https://fleet-server.elk.svc:8220"
-$SERVICE_ACCOUNT_TOKEN="AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjp1ZGw4R0owclJsT09yeUdRcEtjLUVn"  # Replace with your actual Service Account Token
+# Define necessary variables
+$KIBANA_HOST = "http://localhost:5601"
+$SERVICE_ACCOUNT_TOKEN = "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjp5Tm9BcnExcVNJMm5TQi15RkJDajdB"  # Replace with your actual service account token
+$FLEET_SERVER_POLICY_ID = "fleet-server-policy"  # Provided policy ID
+$MaxRetries = 30  # Maximum number of retries
+$DelayBetweenRetries = 5  # Delay between retries in seconds
+# Function to check if Kibana is up and running
+function Wait-ForKibana {
+    $attempt = 0
+    $success = $false
 
-# Create a JSON payload using a hashtable
-$body = @{
-    name               = "Fleet Server Policy2"
-    description        = "Policy for Fleet Server2"
-    namespace          = "default"
-    monitoring_enabled = @("logs", "metrics")
-    has_fleet_server   = $true
-    elasticsearch      = @{
-        hosts = @($ELASTICSEARCH_HOST)
+    while ($attempt -lt $MaxRetries -and -not $success) {
+
+        try {
+
+            $response = Invoke-RestMethod -Uri "$KIBANA_HOST/api/status" -Method Get -TimeoutSec 5 -ErrorAction Stop
+            $jsonResponse = $response | ConvertTo-Json
+            $levelStatus = $response.status.overall.level
+            if ($levelStatus -eq "green" -or $levelStatus -eq "yellow" -or $levelStatus -eq "available" ) {
+                Write-Host "Kibana is up and running."
+                $success = $true
+            }
+
+        } catch {
+            Write-Host "Kibana is not ready yet. Retrying in $DelayBetweenRetries seconds..."
+            Start-Sleep -Seconds $DelayBetweenRetries
+            $attempt++
+        }
     }
-    fleet_server_hosts = @($FLEET_SERVER_URL)
+
+    if (-not $success) {
+        Write-Host "Kibana did not respond in time. Exiting script."
+        Exit 1
+    }
 }
 
-# Convert hashtable to JSON string
-$jsonBody = $body | ConvertTo-Json -Depth 10
+# Function to generate a Fleet server service token
 
-# Output JSON for debugging
-Write-Output "JSON Body: $jsonBody"
+# Function to create an enrollment token for the Fleet server
+function Create-EnrollmentToken {
+    param (
+        [string]$policyId
+    )
 
-# Make the POST request using Invoke-RestMethod
-try {
-    $response = Invoke-RestMethod -Uri "$KIBANA_HOST/api/fleet/agent_policies" `
+    $response = Invoke-RestMethod -Uri "$KIBANA_HOST/api/fleet/enrollment-api-keys" `
         -Method Post `
         -Headers @{
             "Content-Type" = "application/json"
-            "kbn-xsrf"     = "true"
+            "kbn-xsrf" = "true"
             "Authorization" = "Bearer $SERVICE_ACCOUNT_TOKEN"
         } `
-        -Body $jsonBody
-    $response
-} catch {
-    Write-Output "Error: $($_.Exception.Message)"
-    if ($_.Exception.Response -ne $null) {
-        $errorResponse = $_.Exception.Response.GetResponseStream()
-        $reader = New-Object System.IO.StreamReader($errorResponse)
-        $reader.BaseStream.Position = 0
-        $reader.DiscardBufferedData()
-        $errorBody = $reader.ReadToEnd()
-        Write-Output "Response Body: $errorBody"
-    }
+        -Body (@{ "policy_id" = $policyId } | ConvertTo-Json) `
+        -ErrorAction Stop
+
+    return $response.item.api_key
 }
+
+# Check if Kibana is up and running before proceeding
+Wait-ForKibana
+
+# Generate the Fleet server service token
+$FLEET_SERVER_SERVICE_TOKEN = curl -X POST "$KIBANA_HOST/api/fleet/service-tokens" -H "Content-Type: application/json" -H "kbn-xsrf: true" -H "Authorization: Bearer $SERVICE_ACCOUNT_TOKEN"
+
+Write-Host "Generated Fleet Server Service Token: $FLEET_SERVER_SERVICE_TOKEN"
+
+# Create the enrollment token for the Fleet server
+$ENROLLMENT_TOKEN = Create-EnrollmentToken -policyId $FLEET_SERVER_POLICY_ID
+Write-Host "Created Enrollment Token: $ENROLLMENT_TOKEN"
+
+# Now you can use the tokens to configure and start the Fleet server
+Write-Host "Fleet server configuration completed. Use the above tokens to start the Fleet server."
