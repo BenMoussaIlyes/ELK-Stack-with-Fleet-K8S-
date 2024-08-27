@@ -123,3 +123,6 @@ kubectl apply -f fleet-server-service.yaml
 
 kubectl apply -f ubuntu-deployment.yaml
 kubectl apply -f ubuntu-service.yaml
+
+Start-Sleep -Seconds 1
+kubectl get pods --namespace elk -o wide

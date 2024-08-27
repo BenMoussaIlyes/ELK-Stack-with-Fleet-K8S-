@@ -22,7 +22,7 @@ spec:
         - containerPort: 5601
         env:
         - name: ELASTICSEARCH_HOSTS
-          value: "http://elasticsearch-service:9200"
+          value: "http://elasticsearch-service.elk.svc:9200"
         volumeMounts:
         - name: kibana-config
           mountPath: /usr/share/kibana/config/kibana.yml

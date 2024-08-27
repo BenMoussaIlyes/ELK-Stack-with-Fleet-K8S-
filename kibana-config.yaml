@@ -9,7 +9,7 @@ data:
     server.host: "0.0.0.0"
     elasticsearch.hosts: ["http://elasticsearch-service.elk.svc:9200"]
     monitoring.ui.container.elasticsearch.enabled: true
-    elasticsearch.serviceAccountToken: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjowdFlSS3g5OFMyU2NYbjRTZEpLdFd3"
+    elasticsearch.serviceAccountToken: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjp6Y0p4eDkyMVI2ZS10c293TG5NWkpR"
     xpack.monitoring.enabled: true
     xpack.security.encryptionKey: "lsDKt1BJ8LJhdscNlGHkzHVlR7JzkZ7F"
     xpack.reporting.encryptionKey: "VxDs6xHYT38jv6Zp9kHrGf9JwN8KL9SK"
@@ -46,6 +46,9 @@ data:
                       period: 20s
               system-winlog:
                 enabled: false
+
+
+
 
 
 
